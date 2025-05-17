@@ -1,0 +1,42 @@
+name: Deploy to Cloud Run (Low-Cost, Internal Only)
+
+on:
+  workflow_dispatch:  # Manual trigger
+
+env:
+  PROJECT_ID: extended-web-339507
+  REGION: us-central1
+  REPO_NAME: test-repo
+  IMAGE_NAME: compute-worker
+  SERVICE_NAME: compute-worker
+  VPC_CONNECTOR: cloudrun-connector
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Authenticate to Google Cloud
+      uses: google-github-actions/auth@v1
+      with:
+        credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+    - name: Set up gcloud CLI
+      uses: google-github-actions/setup-gcloud@v1
+
+    - name: Deploy to Cloud Run (low-cost, internal only)
+      run: |
+        gcloud run deploy $SERVICE_NAME \
+          --image=us-central1-docker.pkg.dev/$PROJECT_ID/$REPO_NAME/$IMAGE_NAME \
+          --region=$REGION \
+          --platform=managed \
+          --no-allow-unauthenticated \
+          --vpc-connector=$VPC_CONNECTOR \
+          --service-account svc-compute@extended-web-339507.iam.gserviceaccount.com \
+          --ingress=internal \
+          --memory=256Mi \
+          --cpu=0.1 \
+          --timeout=300s \
+          --max-instances=2 \
+          --min-instances=1 \
+          --quiet
