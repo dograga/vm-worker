@@ -1,0 +1,11 @@
+[project]
+name = "vm-worker"
+version = "0.1.0"
+description = "GCP Pub/Sub handler with FastAPI"
+dependencies = [
+    "google-auth>=2.40.1",
+    "google-cloud-compute>=1.30.0",
+    "google-cloud-pubsub>=2.29.0",
+    "structlog>=25.3.0",
+]
+requires-python = ">=3.10"
