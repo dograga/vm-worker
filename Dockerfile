@@ -27,4 +27,4 @@ EXPOSE 8080
 ENV XDG_CACHE_HOME=/tmp/uv_cache
 
 # Start the FastAPI app
-CMD uv run uvicorn app.main:app --host 0.0.0.0 --reload --port 8080
+CMD uv run uvicorn app.main:app --host 0.0.0.0 --port 8080
