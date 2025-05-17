@@ -34,7 +34,7 @@ jobs:
           --vpc-connector=$VPC_CONNECTOR \
           --service-account svc-compute@extended-web-339507.iam.gserviceaccount.com \
           --ingress=internal \
-          --memory=256Mi \
+          --memory=512Mi \
           --cpu=0.1 \
           --timeout=300s \
           --max-instances=2 \
