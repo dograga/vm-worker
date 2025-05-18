@@ -11,13 +11,13 @@ jobs:
       PROJECT_ID: extended-web-339507
       REGION: us-central1
       SERVICE_NAME: compute-worker
-      IMAGE: gcr.io/extended-web-339507/vm-worker
+      REPO_NAME: test-repo
+      IMAGE_NAME: compute-worker
       TOPIC_NAME: vm-operations
       DLT_NAME: vm-operations-dlt
       SUBSCRIPTION_NAME: vm-operations-sub
       SERVICE_ACCOUNT_ID: pubsub-push-sa
       SERVICE_ACCOUNT: pubsub-push-sa@extended-web-339507.iam.gserviceaccount.com
-      PUSH_ENDPOINT: https://compute-worker-cv2gyc3c4a-uc.a.run.app/vm-worker
 
     steps:
       - name: Checkout code
