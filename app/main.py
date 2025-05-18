@@ -33,7 +33,10 @@ async def vm_handler(request: Request):
             raise HTTPException(status_code=400, detail="Invalid Pub/Sub message format")
 
         # Decode and parse the base64-encoded message
+        message = envelope.get("message", {})
+        message_id = message.get("messageId")
         payload_data = base64.b64decode(envelope["message"]["data"]).decode("utf-8")
+        logger.info(f"Received message ID: {message_id}, Data: {payload_data}")
         payload_dict = json.loads(payload_data)
 
         payload = VMOperationPayload(**payload_dict)
