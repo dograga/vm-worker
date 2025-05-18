@@ -1,0 +1,66 @@
+name: Deploy Cloud Run and Setup Pub/Sub
+
+on:
+  workflow_dispatch:  # Manual trigger
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    env:
+      PROJECT_ID: extended-web-339507
+      REGION: us-central1
+      SERVICE_NAME: vm-operations
+      IMAGE: gcr.io/extended-web-339507/vm-worker
+      TOPIC_NAME: vm-operations
+      DLT_NAME: vm-operations-dlt
+      SUBSCRIPTION_NAME: vm-operations-sub
+      SERVICE_ACCOUNT_ID: pubsub-push-sa
+      SERVICE_ACCOUNT: pubsub-push-sa@extended-web-339507.iam.gserviceaccount.com
+      PUSH_ENDPOINT: https://compute-worker-cv2gyc3c4a-uc.a.run.app/vm-worker
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v1
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Set up gcloud
+        uses: google-github-actions/setup-gcloud@v1
+
+      - name: Deploy to Cloud Run
+        run: |
+          gcloud run deploy $SERVICE_NAME \
+            --image $IMAGE \
+            --region $REGION \
+            --project $PROJECT_ID \
+            --platform managed \
+            --allow-unauthenticated
+
+      - name: Create Pub/Sub topics and DLT
+        run: |
+          gcloud pubsub topics create $TOPIC_NAME --project $PROJECT_ID || echo "Topic exists"
+          gcloud pubsub topics create $DLT_NAME --project $PROJECT_ID || echo "DLT exists"
+
+      - name: Create Service Account for Pub/Sub Push
+        run: |
+          gcloud iam service-accounts create $SERVICE_ACCOUNT_ID --project $PROJECT_ID || echo "SA exists"
+
+      - name: Grant IAM roles to Service Account
+        run: |
+          gcloud projects add-iam-policy-binding $PROJECT_ID \
+            --member="serviceAccount:$SERVICE_ACCOUNT" \
+            --role="roles/run.invoker"
+
+      - name: Create Push Subscription with Dead Letter Topic
+        run: |
+          gcloud pubsub subscriptions create $SUBSCRIPTION_NAME \
+            --topic=$TOPIC_NAME \
+            --push-endpoint=$PUSH_ENDPOINT \
+            --push-auth-service-account=$SERVICE_ACCOUNT \
+            --dead-letter-topic=projects/$PROJECT_ID/topics/$DLT_NAME \
+            --max-delivery-attempts=5 \
+            --project=$PROJECT_ID || echo "Subscription exists"
