@@ -38,21 +38,22 @@ async def vm_handler(request: Request):
         payload_data = base64.b64decode(envelope["message"]["data"]).decode("utf-8")
         logger.info(f"Received message ID: {message_id}, Data: {payload_data}")
         payload_dict = json.loads(payload_data)
+        try:
+            payload = VMOperationPayload(**payload_dict)
+            operation = perform_vm_operation(
+                project_id=payload.project_id,
+                zone=payload.zone,
+                instance_name=payload.vm_name,
+                action=payload.action
+            )
+            logger.info(f"Requested VM operation '{payload.action}' for '{payload.vm_name}'")
+            return {"status": "VM operation initiated"}
 
-        payload = VMOperationPayload(**payload_dict)
-        operation = perform_vm_operation(
-            project_id=payload.project_id,
-            zone=payload.zone,
-            instance_name=payload.vm_name,
-            action=payload.action
-        )
-        logger.info(f"Requested VM operation '{payload.action}' for '{payload.vm_name}'")
-        return {"status": "VM operation initiated"}
-
-    except Exception as e:
-        logger.error(f"Error processing message: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
-
+        except Exception as e:
+            logger.error(f"Error processing message: {e}")
+            raise HTTPException(status_code=500, detail=str(e))
+    except HTTPException as http_exc:
+        raise http_exc
 
 @app.post("/vm-worker/debug")
 async def vm_audit_handler(vm_op: VMOperationPayload):
