@@ -10,7 +10,7 @@ jobs:
     env:
       PROJECT_ID: extended-web-339507
       REGION: us-central1
-      SERVICE_NAME: vm-operations
+      SERVICE_NAME: compute-worker
       IMAGE: gcr.io/extended-web-339507/vm-worker
       TOPIC_NAME: vm-operations
       DLT_NAME: vm-operations-dlt
@@ -31,36 +31,58 @@ jobs:
       - name: Set up gcloud
         uses: google-github-actions/setup-gcloud@v1
 
-      - name: Deploy to Cloud Run
+      - name: Deploy to Cloud Run (low-cost, internal only)
         run: |
           gcloud run deploy $SERVICE_NAME \
-            --image $IMAGE \
-            --region $REGION \
-            --project $PROJECT_ID \
-            --platform managed \
-            --allow-unauthenticated
+            --image=us-central1-docker.pkg.dev/$PROJECT_ID/$REPO_NAME/$IMAGE_NAME \
+            --region=$REGION \
+            --platform=managed \
+            --no-allow-unauthenticated \
+            --vpc-connector=$VPC_CONNECTOR \
+            --service-account svc-compute@extended-web-339507.iam.gserviceaccount.com \
+            --ingress=internal \
+            --memory=512Mi \
+            --cpu=0.1 \
+            --timeout=300s \
+            --max-instances=2 \
+            --min-instances=1 \
+            --quiet
 
-      - name: Create Pub/Sub topics and DLT
+      - name: Create Pub/Sub Topics, Subscription, and IAM
         run: |
-          gcloud pubsub topics create $TOPIC_NAME --project $PROJECT_ID || echo "Topic exists"
-          gcloud pubsub topics create $DLT_NAME --project $PROJECT_ID || echo "DLT exists"
 
-      - name: Create Service Account for Pub/Sub Push
-        run: |
-          gcloud iam service-accounts create $SERVICE_ACCOUNT_ID --project $PROJECT_ID || echo "SA exists"
+          # 1. Create DLQ topic
+          gcloud pubsub topics create $DLT_NAME --project=$PROJECT_ID || true
 
-      - name: Grant IAM roles to Service Account
-        run: |
-          gcloud projects add-iam-policy-binding $PROJECT_ID \
+          # 2. Create main topic
+          gcloud pubsub topics create $TOPIC_NAME --project=$PROJECT_ID || true
+
+          # 3. Create service account for Pub/Sub push
+          gcloud iam service-accounts create pubsub-push-sa \
+            --display-name="Pub/Sub Push SA" \
+            --project=$PROJECT_ID || true
+
+          # 4. Add Cloud Run Invoker role
+          gcloud run services add-iam-policy-binding $SERVICE_NAME \
             --member="serviceAccount:$SERVICE_ACCOUNT" \
-            --role="roles/run.invoker"
+            --role="roles/run.invoker" \
+            --region=$REGION \
+            --project=$PROJECT_ID || true
 
-      - name: Create Push Subscription with Dead Letter Topic
-        run: |
+          # 5. Get Cloud Run URL
+          CLOUD_RUN_URL=$(gcloud run services describe $SERVICE_NAME \
+            --region=$REGION \
+            --project=$PROJECT_ID \
+            --format="value(status.url)")
+
+          echo "Cloud Run URL: $CLOUD_RUN_URL"
+
+          # 6. Create push subscription with DLQ
           gcloud pubsub subscriptions create $SUBSCRIPTION_NAME \
             --topic=$TOPIC_NAME \
-            --push-endpoint=$PUSH_ENDPOINT \
+            --push-endpoint=$CLOUD_RUN_URL \
             --push-auth-service-account=$SERVICE_ACCOUNT \
             --dead-letter-topic=projects/$PROJECT_ID/topics/$DLT_NAME \
             --max-delivery-attempts=5 \
-            --project=$PROJECT_ID || echo "Subscription exists"
+            --ack-deadline=10 \
+            --project=$PROJECT_ID || true

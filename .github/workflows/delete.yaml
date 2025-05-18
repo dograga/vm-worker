@@ -1,0 +1,56 @@
+name: Delete GCP Objects
+
+on:
+  workflow_dispatch:
+
+jobs:
+  delete:
+    runs-on: ubuntu-latest
+
+    env:
+      PROJECT_ID: extended-web-339507
+      REGION: us-central1
+      SERVICE_NAME: compute-worker
+      TOPIC_NAME: vm-operations
+      DLT_NAME: vm-operations-dlt
+      SUBSCRIPTION_NAME: vm-operations-sub
+      SERVICE_ACCOUNT: pubsub-push-sa@extended-web-339507.iam.gserviceaccount.com
+
+    steps:
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v1
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Set up gcloud CLI
+        uses: google-github-actions/setup-gcloud@v1
+
+      - name: Delete Cloud Run Service
+        run: |
+          gcloud run services delete $SERVICE_NAME \
+            --region=$REGION \
+            --project=$PROJECT_ID \
+            --quiet || echo "Cloud Run service not found or already deleted."
+
+      - name: Delete Pub/Sub subscription
+        run: |
+          gcloud pubsub subscriptions delete $SUBSCRIPTION_NAME \
+            --project=$PROJECT_ID \
+            --quiet || echo "Subscription not found or already deleted."
+
+      - name: Delete Pub/Sub topics
+        run: |
+          gcloud pubsub topics delete $TOPIC_NAME --project=$PROJECT_ID --quiet || echo "Topic $TOPIC_NAME not found."
+          gcloud pubsub topics delete $DLT_NAME --project=$PROJECT_ID --quiet || echo "Topic $DLT_NAME not found."
+
+      - name: Delete Service Account
+        run: |
+          gcloud iam service-accounts delete $SERVICE_ACCOUNT \
+            --project=$PROJECT_ID \
+            --quiet || echo "Service Account not found or already deleted."
+      - name: Delete IAM Policy Binding 
+        run: |
+          gcloud projects remove-iam-policy-binding $PROJECT_ID \
+            --member=serviceAccount:$SERVICE_ACCOUNT \
+            --role=roles/pubsub.subscriber \
+            --quiet || echo "IAM policy binding not found or already deleted."
