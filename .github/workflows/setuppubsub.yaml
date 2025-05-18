@@ -31,7 +31,7 @@ jobs:
           TOPIC_NAME="vm-operations"
           DLT_NAME="vm-operations-dlt"
           SUBSCRIPTION_NAME="vm-operations-sub"
-          SERVICE_NAME="vm-operations"
+          SERVICE_NAME="compute-worker"
           SERVICE_ACCOUNT="pubsub-push-sa@${PROJECT_ID}.iam.gserviceaccount.com"
 
           # 1. Create DLQ topic
