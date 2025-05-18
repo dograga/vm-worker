@@ -29,6 +29,8 @@ class VMOperationPayload(BaseModel):
 async def vm_handler(request: Request):
     try:
         envelope = await request.json()
+        delivery_attempt = request.headers.get("x-goog-pubsub-delivery-attempt", "1")
+        logger.info(f"Delivery Attempt: {delivery_attempt}")
         if "message" not in envelope or "data" not in envelope["message"]:
             raise HTTPException(status_code=400, detail="Invalid Pub/Sub message format")
 
