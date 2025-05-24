@@ -70,6 +70,10 @@ jobs:
             --region=$REGION \
             --project=$PROJECT_ID || true
 
+          gcloud projects add-iam-policy-binding $PROJECT_ID \
+            --member="serviceAccount:$SERVICE_ACCOUNT" \
+            --role="roles/pubsub.publisher"
+
           # 5. Get Cloud Run URL
           CLOUD_RUN_URL=$(gcloud run services describe $SERVICE_NAME \
             --region=$REGION \
