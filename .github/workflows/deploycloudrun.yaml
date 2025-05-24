@@ -1,4 +1,4 @@
-name: Deploy to Cloud Run (Low-Cost, Internal Only)
+name: Deploy Cloud Run (Low-Cost, Internal Only)
 
 on:
   workflow_dispatch:  # Manual trigger

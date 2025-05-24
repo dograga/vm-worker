@@ -1,4 +1,4 @@
-name: Deploy Cloud Run and Setup Pub/Sub
+name: Deploy nodepool-resize Pub/Sub Push Configuration
 
 on:
   workflow_dispatch:  # Manual trigger
