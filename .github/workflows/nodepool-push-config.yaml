@@ -19,6 +19,7 @@ jobs:
       SUBSCRIPTION_NAME: nodepool-resize-sub
       SERVICE_ACCOUNT_ID: pubsub-push-sa
       SERVICE_ACCOUNT: pubsub-push-sa@extended-web-339507.iam.gserviceaccount.com
+      CLOUD_RUN_URL: https://compute-worker-cv2gyc3c4a-uc.a.run.app/configure-nodepool
 
     steps:
       - name: Checkout code
