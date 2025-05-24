@@ -6,7 +6,8 @@ from typing import Literal
 import json
 import base64
 import structlog
-from app.gcp import perform_vm_operation
+from app.gcp import perform_vm_operation, nodepool_setsize
+from app.dataclass import NodePoolConfig, VMOperationPayload
 
 logger = structlog.get_logger()
 app = FastAPI()
@@ -18,12 +19,6 @@ app.add_middleware(
     allow_methods=["*"],  # <- Allow all HTTP methods (GET, POST, etc.)
     allow_headers=["*"],  # <- Allow all headers
 )
-
-class VMOperationPayload(BaseModel):
-    vm_name: str = Field(..., example="test-vm")
-    action: Literal["start", "stop", "restart"]
-    zone: str = Field(..., example="us-central1-a")
-    project_id: str
 
 @app.post("/vm-worker")
 async def vm_handler(request: Request):
@@ -74,3 +69,12 @@ async def vm_audit_handler(vm_op: VMOperationPayload):
     except Exception as e:
         logger.error(f"Error processing message: {e}")
         raise HTTPException(status_code=500, detail=str(e)) 
+    
+@app.post("/configure-nodepool")
+def configure_nodepool(config: NodePoolConfig):
+    try:
+        response = nodepool_setsize(config)
+        return response
+    except Exception as e:
+        logger.error(f"Error configuring node pool: {e}")
+        raise HTTPException(status_code=500, detail=str(e))

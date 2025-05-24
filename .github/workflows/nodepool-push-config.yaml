@@ -11,12 +11,12 @@ jobs:
       PROJECT_ID: extended-web-339507
       REGION: us-central1
       SERVICE_NAME: compute-worker
+      VPC_CONNECTOR: cloudrun-connector
       REPO_NAME: test-repo
       IMAGE_NAME: compute-worker
-      TOPIC_NAME: vm-operations
-      DLT_NAME: vm-operations-dlt
-      VPC_CONNECTOR: cloudrun-connector
-      SUBSCRIPTION_NAME: vm-operations-sub
+      TOPIC_NAME: nodepool-resize
+      DLT_NAME: nodepool-resize-dlt
+      SUBSCRIPTION_NAME: nodepool-resize-sub
       SERVICE_ACCOUNT_ID: pubsub-push-sa
       SERVICE_ACCOUNT: pubsub-push-sa@extended-web-339507.iam.gserviceaccount.com
 
@@ -31,23 +31,6 @@ jobs:
 
       - name: Set up gcloud
         uses: google-github-actions/setup-gcloud@v1
-
-      - name: Deploy to Cloud Run (low-cost, internal only)
-        run: |
-          gcloud run deploy $SERVICE_NAME \
-            --image=us-central1-docker.pkg.dev/$PROJECT_ID/$REPO_NAME/$IMAGE_NAME \
-            --region=$REGION \
-            --platform=managed \
-            --no-allow-unauthenticated \
-            --vpc-connector=$VPC_CONNECTOR \
-            --service-account svc-compute@extended-web-339507.iam.gserviceaccount.com \
-            --ingress=internal \
-            --memory=512Mi \
-            --cpu=0.1 \
-            --timeout=300s \
-            --max-instances=2 \
-            --min-instances=1 \
-            --quiet
 
       - name: Create Pub/Sub Topics, Subscription, and IAM
         run: |
@@ -81,7 +64,7 @@ jobs:
           # 6. Create push subscription with DLQ
           gcloud pubsub subscriptions create $SUBSCRIPTION_NAME \
             --topic=$TOPIC_NAME \
-            --push-endpoint="$CLOUD_RUN_URL/nodepool-resize" \
+            --push-endpoint=$CLOUD_RUN_URL \
             --push-auth-service-account=$SERVICE_ACCOUNT \
             --dead-letter-topic=projects/$PROJECT_ID/topics/$DLT_NAME \
             --max-delivery-attempts=5 \
