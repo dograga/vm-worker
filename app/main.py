@@ -1,13 +1,11 @@
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel, Field
-from google.cloud import compute_v1
 from typing import Literal
 import json
 import base64
 import structlog
-from app.gcp import perform_vm_operation, nodepool_setsize
-from app.dataclass import NodePoolConfig, VMOperationPayload
+import app.gcp as gcp
+import app.dataclass as dataclass
 
 logger = structlog.get_logger()
 app = FastAPI()
@@ -34,8 +32,8 @@ async def vm_handler(request: Request):
         logger.info(f"Received message ID: {message_id}, Data: {payload_data}")
         payload_dict = json.loads(payload_data)
         try:
-            payload = VMOperationPayload(**payload_dict)
-            operation = perform_vm_operation(
+            payload = dataclass.VMOperationPayload(**payload_dict)
+            operation = gcp.perform_vm_operation(
                 project_id=payload.project_id,
                 zone=payload.zone,
                 instance_name=payload.vm_name,
@@ -51,13 +49,13 @@ async def vm_handler(request: Request):
         raise http_exc
 
 @app.post("/vm-worker/debug")
-async def vm_audit_handler(vm_op: VMOperationPayload):
+async def vm_audit_handler(vm_op: dataclass.VMOperationPayload):
     try:
         payload_dict = vm_op.dict()
         logger.info(f"Debugging VM operation: {payload_dict}")
-        payload = VMOperationPayload(**payload_dict)
+        payload = dataclass.VMOperationPayload(**payload_dict)
         logger.info(f"Debugging VM operation: {payload.vm_name} with action {payload.action} {payload.zone} {payload.project_id}")
-        operation = perform_vm_operation(
+        operation = gcp.perform_vm_operation(
             project_id=payload.project_id,
             zone=payload.zone,
             instance_name=payload.vm_name,
@@ -83,8 +81,28 @@ async def configure_nodepool(request: Request):
         payload_data = base64.b64decode(envelope["message"]["data"]).decode("utf-8")
         logger.info(f"Received message ID: {message_id}, Data: {payload_data}")
         payload_dict = json.loads(payload_data)
-        payload = NodePoolConfig(**payload_dict)
-        response = nodepool_setsize(payload)
+        payload = dataclass.NodePoolConfig(**payload_dict)
+        response = gcp.nodepool_setsize(payload)
+        return response
+    except Exception as e:
+        logger.error(f"Error configuring node pool: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+    
+@app.post("/nodepool-schedule-tag")
+async def nodepool_schedule_tag(request: Request):
+    try:
+        envelope = await request.json()
+        if "message" not in envelope or "data" not in envelope["message"]:
+            raise HTTPException(status_code=400, detail="Invalid Pub/Sub message format")
+
+        # Decode and parse the base64-encoded message
+        message = envelope.get("message", {})
+        message_id = message.get("messageId")
+        payload_data = base64.b64decode(envelope["message"]["data"]).decode("utf-8")
+        logger.info(f"Received message ID: {message_id}, Data: {payload_data}")
+        payload_dict = json.loads(payload_data)
+        payload = dataclass.NodePoolSizeTag(**payload_dict)
+        response = gcp.apply_nodepool_schedule_labels(payload)
         return response
     except Exception as e:
         logger.error(f"Error configuring node pool: {e}")

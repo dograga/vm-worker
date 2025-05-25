@@ -17,3 +17,12 @@ class NodePoolConfig(BaseModel):
     min_nodes: Optional[int] = None
     max_nodes: Optional[int] = None
     desired_node_count: Optional[int] = None
+
+class NodePoolSizeTag(BaseModel):
+    project_id: str
+    zone: str
+    cluster_id: str
+    nodepool_id: str
+    enable_autoscaling: bool
+    business_hours: str = Field(..., example="3,6,4") # min=3,max=6,desired=4
+    off_hours: str = Field(..., example="0,0,0") # min=0,max=0,desired=0

@@ -1,7 +1,7 @@
 from google.cloud import compute_v1
 import structlog
 from google.auth import default
-from app.dataclass import NodePoolConfig
+import app.dataclass as dataclass
 from fastapi import HTTPException
 from time import sleep
 from google.cloud import container_v1
@@ -43,7 +43,7 @@ def set_nodepool_desired_size(client: container_v1.ClusterManagerClient, name: s
     raise HTTPException(status_code=500, detail="Failed to resize node pool after multiple attempts")
 
 
-def nodepool_setsize(config: NodePoolConfig):
+def nodepool_setsize(config: dataclass.NodePoolConfig):
     """
     Configure the node pool for a GKE cluster using the gRPC client.
     """
@@ -98,3 +98,43 @@ def nodepool_setsize(config: NodePoolConfig):
     except Exception as e:
         logger.error(f"Error updating node pool: {e}")
         raise HTTPException(status_code=500, detail=f"Error updating node pool: {str(e)}")
+
+
+def apply_nodepool_schedule_labels(nodepool_tag: dataclass.NodePoolSizeTag):
+    """
+    Apply nodepool schedule configuration as labels in the format: "min,max,desired"
+    """
+    try:
+        client = container_v1.NodePoolsClient()
+        name = f"projects/{nodepool_tag.project_id}/locations/{nodepool_tag.zone}/clusters/{nodepool_tag.cluster_id}/nodePools/{nodepool_tag.nodepool_id}"
+
+        # Get the current node pool
+        nodepool = client.get(name=name)
+        existing_labels = dict(nodepool.resource_labels)
+        fingerprint = nodepool.label_fingerprint
+
+        # Prepare new labels
+        existing_labels["nodepool-business-hours"] = nodepool_tag.business_hours
+        existing_labels["nodepool-off-hours"] = nodepool_tag.off_hours
+
+        # Create the SetLabels request
+        request = container_v1.SetLabelsRequest(
+            name=name,
+            resource_labels=existing_labels,
+            label_fingerprint=fingerprint
+        )
+
+        op = client.set_labels(request=request)
+        logger.info(f"Labels applied: business_hours={nodepool_tag.business_hours}, off_hours={nodepool_tag.off_hours}")
+        return {
+            "message": "Labels updated successfully",
+            "operation": op.name,
+            "labels": {
+                "nodepool-business-hours": nodepool_tag.business_hours,
+                "nodepool-off-hours": nodepool_tag.off_hours
+            }
+        }
+
+    except Exception as e:
+        logger.error(f"Failed to apply labels to node pool: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to apply labels: {str(e)}")
