@@ -102,7 +102,7 @@ async def nodepool_schedule_tag(request: Request):
         logger.info(f"Received message ID: {message_id}, Data: {payload_data}")
         payload_dict = json.loads(payload_data)
         payload = dataclass.NodePoolSizeTag(**payload_dict)
-        response = gcp.apply_nodepool_schedule_labels(payload)
+        response = gcp.store_nodepool_size_tag(payload)
         return response
     except Exception as e:
         logger.error(f"Error configuring node pool: {e}")

@@ -1,7 +1,7 @@
 from google.cloud import compute_v1
 import structlog
 from google.auth import default
-
+from google.cloud import firestore
 import app.dataclass as dataclass
 from fastapi import HTTPException
 from time import sleep
@@ -99,3 +99,28 @@ def nodepool_setsize(config: dataclass.NodePoolConfig):
     except Exception as e:
         logger.error(f"Error updating node pool: {e}")
         raise HTTPException(status_code=500, detail=f"Error updating node pool: {str(e)}")
+
+
+def get_doc_id(tag: dataclass.NodePoolSizeTag) -> str:
+    # Compose unique doc id from identifiers
+    return f"{tag.project_id}__{tag.cluster_id}__{tag.nodepool_id}"
+
+def store_nodepool_size_tag(tag: dataclass.NodePoolSizeTag):
+    # Initialize Firestore client
+    db = firestore.Client()
+    # Collection name
+    collection_name = "gke-nodepool-scheduler"
+    logger.info(f"Storing nodepool size tag in collection: {collection_name}")
+    try:
+        doc_id = get_doc_id(tag)
+        doc_ref = db.collection(collection_name).document(doc_id)
+
+        # Convert pydantic model to dict
+        data = tag.dict()
+
+        # Store or update document
+        doc_ref.set(data)
+        logger.info(f"Stored nodepool info for doc_id: {doc_id}")
+    except Exception as e:
+        logger.error(f"Error storing nodepool size tag: {e}")
+        raise HTTPException(status_code=500, detail=f"Error storing nodepool size tag: {str(e)}")
