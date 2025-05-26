@@ -19,7 +19,7 @@ jobs:
       - name: Create Firestore (Native mode, us-central1)
         run: |
           gcloud firestore databases create \
-            --region=us-central1 \
+            --location=us-central1 \
             --database=default \
             --type=firestore-native || echo "Firestore already exists"
 
