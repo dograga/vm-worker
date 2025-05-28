@@ -42,7 +42,7 @@ jobs:
           --quiet
 
 
-gcloud projects add-iam-policy-binding extended-web-339507 \
-  --member="serviceAccount:svc-compute@extended-web-339507.iam.gserviceaccount.com" \
-  --role="roles/datastore.user"
+# gcloud projects add-iam-policy-binding extended-web-339507 \
+#   --member="serviceAccount:svc-compute@extended-web-339507.iam.gserviceaccount.com" \
+#   --role="roles/datastore.user"
 

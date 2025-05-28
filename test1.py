@@ -27,6 +27,7 @@ def store_nodepool_size_tag(tag: NodePoolSizeTag):
     print(f"Stored nodepool info for doc_id: {doc_id}")
 
 if __name__ == "__main__":
+    data = {"project_id": "extended-web-339507", "zone": "us-central-1", "cluster_id": "my-private-cluster-1", "nodepool_id": "default-pool", "enable_autoscaling": true, "business_hours": {"days": [1, 2, 3, 4], "endtime": "18:00:00", "starttime": "06:00:00"}, "business_hours_config": "1,1,1", "off_hours_config": "0,0,0", "job_id": "cf9055dd-318f-45ec-925f-e4ec35eaaef5"}
     example_tag = NodePoolSizeTag(
         project_id="extended-web-339507",
         zone="us-central1-a",
