@@ -116,7 +116,7 @@ def store_nodepool_size_tag(tag: dataclass.NodePoolSizeTag):
         doc_ref = db.collection(collection_name).document(doc_id)
 
         # Convert pydantic model to dict
-        data = tag.dict()
+        data = tag.model_dump()
 
         # Store or update document
         doc_ref.set(data)
