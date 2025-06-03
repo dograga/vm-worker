@@ -107,3 +107,23 @@ async def nodepool_schedule_tag(request: Request):
     except Exception as e:
         logger.error(f"Error configuring node pool: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/gke-maintenance-window")
+async def nodepool_schedule_tag(request: Request):
+    try:
+        envelope = await request.json()
+        if "message" not in envelope or "data" not in envelope["message"]:
+            raise HTTPException(status_code=400, detail="Invalid Pub/Sub message format")
+
+        # Decode and parse the base64-encoded message
+        message = envelope.get("message", {})
+        message_id = message.get("messageId")
+        payload_data = base64.b64decode(envelope["message"]["data"]).decode("utf-8")
+        logger.info(f"Received message ID: {message_id}, Data: {payload_data}")
+        payload_dict = json.loads(payload_data)
+        payload = dataclass.NodePoolSizeTag(**payload_dict)
+        response = gcp.schedule_maintenance(payload)
+        return response
+    except Exception as e:
+        logger.error(f"Error configuring node pool: {e}")
+        raise HTTPException(status_code=500, detail=str(e))

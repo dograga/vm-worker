@@ -9,6 +9,7 @@ dependencies = [
     "google-cloud-container>=2.56.1",
     "google-cloud-firestore>=2.20.2",
     "google-cloud-pubsub>=2.29.0",
+    "protobuf>=5.29.4",
     "structlog>=25.3.0",
     "uvicorn>=0.34.2",
 ]
