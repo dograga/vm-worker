@@ -48,7 +48,7 @@ def set_nodepool_desired_size(client: container_v1.ClusterManagerClient, name: s
 
 def nodepool_setsize(config: dataclass.NodePoolConfig):
     """
-    Configure the node pool for a GKE cluster using the gRPC client.
+    Configure the node pool for a GKE cluster 
     """
     try:
         client = container_v1.ClusterManagerClient()
@@ -178,3 +178,41 @@ def schedule_maintenance(req: dataclass.MaintenanceWindowRequest):
     )
     response = client.set_maintenance_policy(request=request)
     return response
+
+def get_vm_doc_id(tag: dataclass.ScheduleTag) -> str:
+    """Generate Firestore document ID for a VM instance."""
+    return f"vm-{tag.project_id}-{tag.instance_name}"
+
+def store_vm_schedule_tag(tag: dataclass.ScheduleTag):
+    """Store VM instance schedule in Firestore."""
+    db = firestore.Client()
+    collection_name = "vm-instance-schedule"
+    logger.info(f"Storing VM schedule tag in collection: {collection_name}")
+
+    try:
+        doc_id = get_vm_doc_id(tag)
+        doc_ref = db.collection(collection_name).document(doc_id)
+
+        doc_data = {
+            "business_hours": {
+                "days": tag.days,
+                "starttime": tag.starttime,
+                "endtime": tag.endtime,
+                "timezone": tag.timezone.lower()
+            },
+            "vm_name": tag.instance_name,
+            "zone": tag.zone
+        }
+
+        doc_ref.set(doc_data)
+        logger.info(f"Stored VM schedule tag under doc_id: {doc_id}")
+
+        return {
+            "message": f"Schedule info stored for {tag.instance_name}",
+            "document_id": doc_id,
+            "collection": collection_name
+        }
+
+    except Exception as e:
+        logger.error(f"Error storing VM schedule tag: {e}")
+        raise HTTPException(status_code=500, detail=f"Error storing VM schedule tag: {str(e)}")
