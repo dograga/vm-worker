@@ -4,7 +4,7 @@ on:
   workflow_dispatch:  # Manual trigger
 
 env:
-  PROJECT_ID: extended-web-339507
+  PROJECT_ID: smooth-command-462303-n7 
   REGION: us-central1
   REPO_NAME: test-repo
   IMAGE_NAME: compute-worker
@@ -19,7 +19,7 @@ jobs:
     - name: Authenticate to Google Cloud
       uses: google-github-actions/auth@v1
       with:
-        credentials_json: ${{ secrets.GCP_SA_KEY }}
+        credentials_json: ${{ secrets.GCP_BOOTSTRAP_SA_KEY }}
 
     - name: Set up gcloud CLI
       uses: google-github-actions/setup-gcloud@v1
