@@ -8,7 +8,7 @@ env:
   REGION: us-central1
   REPO_NAME: test-repo
   IMAGE_NAME: compute-worker
-  SERVICE_NAME: compute-worker
+  SERVICE_NAME: compute-operations-sa
   VPC_CONNECTOR: cloudrun-connector
 
 jobs:
