@@ -8,7 +8,8 @@ env:
   REGION: us-central1
   REPO_NAME: test-repo
   IMAGE_NAME: compute-worker
-  SERVICE_NAME: compute-operations-sa
+  SERVICE_NAME: compute-operations
+  SERVICE_ACCOUNT_MAIL: compute-operations-sa@smooth-command-462303-n7.iam.gserviceaccount.com
   VPC_CONNECTOR: cloudrun-connector
 
 jobs:
@@ -32,7 +33,7 @@ jobs:
           --platform=managed \
           --no-allow-unauthenticated \
           --vpc-connector=$VPC_CONNECTOR \
-          --service-account svc-compute@extended-web-339507.iam.gserviceaccount.com \
+          --service-account $SERVICE_ACCOUNT_MAIL \
           --ingress=internal \
           --memory=512Mi \
           --cpu=0.1 \
