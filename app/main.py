@@ -20,6 +20,7 @@ app.add_middleware(
 
 @app.post("/vm-worker")
 async def vm_handler(request: Request):
+    ### Handle incoming Pub/Sub messages for VM operations
     try:
         envelope = await request.json()
         if "message" not in envelope or "data" not in envelope["message"]:
@@ -50,6 +51,7 @@ async def vm_handler(request: Request):
 
 @app.post("/vm-worker/debug")
 async def vm_audit_handler(vm_op: dataclass.VMOperationPayload):
+    ### Debugging endpoint for VM operations
     try:
         payload_dict = vm_op.dict()
         logger.info(f"Debugging VM operation: {payload_dict}")
@@ -70,6 +72,7 @@ async def vm_audit_handler(vm_op: dataclass.VMOperationPayload):
     
 @app.post("/configure-nodepool")
 async def configure_nodepool(request: Request):
+    ### Handle incoming Pub/Sub messages for GKE node pool configuration
     try:
         envelope = await request.json()
         if "message" not in envelope or "data" not in envelope["message"]:
@@ -90,6 +93,7 @@ async def configure_nodepool(request: Request):
     
 @app.post("/nodepool-schedule-tag")
 async def nodepool_schedule_tag(request: Request):
+    ### Handle incoming Pub/Sub messages for GKE node pool scheduling tags
     try:
         envelope = await request.json()
         if "message" not in envelope or "data" not in envelope["message"]:

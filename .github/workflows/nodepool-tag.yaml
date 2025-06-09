@@ -70,5 +70,5 @@ jobs:
             --push-auth-service-account=$SERVICE_ACCOUNT \
             --dead-letter-topic=projects/$PROJECT_ID/topics/$DLT_NAME \
             --max-delivery-attempts=5 \
-            --ack-deadline=10 \
+            --ack-deadline=300 \
             --project=$PROJECT_ID || true

@@ -54,14 +54,6 @@ jobs:
             --region=$REGION \
             --project=$PROJECT_ID || true
 
-          # 5. Get Cloud Run URL
-          CLOUD_RUN_URL=$(gcloud run services describe $SERVICE_NAME \
-            --region=$REGION \
-            --project=$PROJECT_ID \
-            --format="value(status.url)")
-
-          echo "Cloud Run URL: $CLOUD_RUN_URL"
-
           # 6. Create push subscription with DLQ
           gcloud pubsub subscriptions create $SUBSCRIPTION_NAME \
             --topic=$TOPIC_NAME \
@@ -69,5 +61,5 @@ jobs:
             --push-auth-service-account=$SERVICE_ACCOUNT \
             --dead-letter-topic=projects/$PROJECT_ID/topics/$DLT_NAME \
             --max-delivery-attempts=5 \
-            --ack-deadline=10 \
+            --ack-deadline=300 \
             --project=$PROJECT_ID || true
