@@ -16,7 +16,7 @@ load_config()
 logger = structlog.get_logger()
 credentials, _ = default()
 compute_client = compute_v1.InstancesClient()
-firestore_db = firestore.Client(os.getenv("FIRESTORE_DB"))
+firestore_db = firestore.Client(database=os.getenv("FIRESTORE_DB"), project=os.getenv("PROJECT_ID"))
 
 def perform_vm_operation(project_id: str, zone: str, instance_name: str, action: str):
     if action == "start":
