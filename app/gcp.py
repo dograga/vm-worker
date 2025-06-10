@@ -9,8 +9,6 @@ from google.cloud import container_v1
 from google.protobuf.timestamp_pb2 import Timestamp
 import datetime
 import os
-from google.protobuf.json_format import MessageToDict
-from fastapi.responses import JSONResponse
 import json
 from app.utils.config_loader import load_config
 load_config()
@@ -187,8 +185,8 @@ def schedule_maintenance(req: dataclass.MaintenanceWindowRequest):
             maintenance_policy=maintenance_policy
         )
         response = client.set_maintenance_policy(request=request)
-        response_dict = MessageToDict(response, preserving_proto_field_name=True, including_default_value_fields=False)
-        return response_dict
+        logger.info(f"Maintenance scheduled successfully: {response}")
+        return {"status": "success"}
     except Exception as e:
         logger.error(f"Error scheduling maintenance: {e}")
         raise HTTPException(status_code=500, detail=f"Error scheduling maintenance: {str(e)}")
