@@ -9,7 +9,7 @@ from google.cloud import container_v1
 from google.protobuf.timestamp_pb2 import Timestamp
 import datetime
 import os
-from google.protobuf.json_format import MessageToDict
+from google.protobuf.json_format import MessageToJson
 from fastapi.responses import JSONResponse
 import json
 from app.utils.config_loader import load_config
