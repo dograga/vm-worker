@@ -125,7 +125,7 @@ async def nodepool_schedule_tag(request: Request):
         payload_data = base64.b64decode(envelope["message"]["data"]).decode("utf-8")
         logger.info(f"Received message ID: {message_id}, Data: {payload_data}")
         payload_dict = json.loads(payload_data)
-        payload = dataclass.NodePoolSizeTag(**payload_dict)
+        payload = dataclass.MaintenanceWindowRequest(**payload_dict)
         response = gcp.schedule_maintenance(payload)
         return response
     except Exception as e:
