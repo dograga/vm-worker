@@ -152,37 +152,42 @@ def schedule_maintenance(req: dataclass.MaintenanceWindowRequest):
     client = container_v1.ClusterManagerClient()
 
     # Parse time
-    hours, minutes = map(int, req.start_time.split(":"))
-    end_hour = (hours + req.duration_hours) % 24
+    try:
+        hours, minutes = map(int, req.start_time.split(":"))
+        end_hour = (hours + req.duration_hours) % 24
 
-    # Create start and end timestamps
-    start_ts = make_timestamp(hours, minutes)
-    end_ts = make_timestamp(end_hour, minutes)
-
-    recurring_window = container_v1.RecurringTimeWindow(
-        window=container_v1.TimeWindow(
-            start_time=start_ts,
-            end_time=end_ts,
-        ),
-        recurrence=f"FREQ={req.frequency};BYDAY={','.join(req.byday)}"
-    )
-    cluster = client.get_cluster(
-    name=f"projects/{req.project_id}/locations/{req.location}/clusters/{req.cluster_id}"
-    )
-    resource_version = cluster.maintenance_policy.resource_version
-    maintenance_policy = container_v1.MaintenancePolicy(
-        window=container_v1.MaintenanceWindow(
-        recurring_window=recurring_window
-        ),
-        resource_version=resource_version
-    )
-    
-    request = container_v1.SetMaintenancePolicyRequest(
-        name=f"projects/{req.project_id}/locations/{req.location}/clusters/{req.cluster_id}",
-        maintenance_policy=maintenance_policy
-    )
-    response = client.set_maintenance_policy(request=request)
-    return response
+        # Create start and end timestamps
+        start_ts = make_timestamp(hours, minutes)
+        end_ts = make_timestamp(end_hour, minutes)
+        logger.info(f"Scheduling maintenance from {start_ts.ToDatetime()} to {end_ts.ToDatetime()}")
+        recurring_window = container_v1.RecurringTimeWindow(
+            window=container_v1.TimeWindow(
+                start_time=start_ts,
+                end_time=end_ts,
+            ),
+            recurrence=f"FREQ={req.frequency};BYDAY={','.join(req.byday)}"
+        )
+        cluster = client.get_cluster(
+        name=f"projects/{req.project_id}/locations/{req.location}/clusters/{req.cluster_id}"
+        )
+        resource_version = cluster.maintenance_policy.resource_version
+        logger.info(f"Current resource version: {resource_version}")
+        maintenance_policy = container_v1.MaintenancePolicy(
+            window=container_v1.MaintenanceWindow(
+            recurring_window=recurring_window
+            ),
+            resource_version=resource_version
+        )
+        
+        request = container_v1.SetMaintenancePolicyRequest(
+            name=f"projects/{req.project_id}/locations/{req.location}/clusters/{req.cluster_id}",
+            maintenance_policy=maintenance_policy
+        )
+        response = client.set_maintenance_policy(request=request)
+        return response
+    except Exception as e:
+        logger.error(f"Error scheduling maintenance: {e}")
+        raise HTTPException(status_code=500, detail=f"Error scheduling maintenance: {str(e)}")
 
 def get_vm_doc_id(tag: dataclass.ScheduleTag) -> str:
     """Generate Firestore document ID for a VM instance."""
