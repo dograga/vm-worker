@@ -8,10 +8,15 @@ from time import sleep
 from google.cloud import container_v1
 from google.protobuf.timestamp_pb2 import Timestamp
 import datetime
+import os
+from app.utils.config_loader import load_config
+load_config()
+
 
 logger = structlog.get_logger()
 credentials, _ = default()
 compute_client = compute_v1.InstancesClient()
+firestore_db = firestore.Client(os.getenv("FIRESTORE_DB"))
 
 def perform_vm_operation(project_id: str, zone: str, instance_name: str, action: str):
     if action == "start":
@@ -109,13 +114,13 @@ def get_doc_id(tag: dataclass.NodePoolSizeTag) -> str:
 
 def store_nodepool_size_tag(tag: dataclass.NodePoolSizeTag):
     # Initialize Firestore client
-    db = firestore.Client()
+    #db = firestore.Client()
     # Collection name
     collection_name = "gke-nodepool-scheduler"
     logger.info(f"Storing nodepool size tag in collection: {collection_name}")
     try:
         doc_id = get_doc_id(tag)
-        doc_ref = db.collection(collection_name).document(doc_id)
+        doc_ref = firestore_db.collection(collection_name).document(doc_id)
 
         # Convert pydantic model to dict
         data = tag.model_dump()
@@ -185,13 +190,13 @@ def get_vm_doc_id(tag: dataclass.ScheduleTag) -> str:
 
 def store_vm_schedule_tag(tag: dataclass.ScheduleTag):
     """Store VM instance schedule in Firestore."""
-    db = firestore.Client()
+    #db = firestore.Client()
     collection_name = "vm-instance-schedule"
     logger.info(f"Storing VM schedule tag in collection: {collection_name}")
 
     try:
         doc_id = get_vm_doc_id(tag)
-        doc_ref = db.collection(collection_name).document(doc_id)
+        doc_ref = firestore_db.collection(collection_name).document(doc_id)
 
         doc_data = {
             "business_hours": {

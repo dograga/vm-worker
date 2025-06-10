@@ -3,6 +3,7 @@ name = "vm-worker"
 version = "0.1.0"
 description = "GCP Pub/Sub handler with FastAPI"
 dependencies = [
+    "dotenv>=0.9.9",
     "fastapi>=0.115.12",
     "google-auth>=2.40.1",
     "google-cloud-compute>=1.30.0",
