@@ -13,8 +13,6 @@ jobs:
       REPOSITORY: test-repo
       IMAGE_NAME: compute-worker
       IMAGE_TAG: latest
-      REPO_NAME: test-repo
-      IMAGE_NAME: compute-worker
       SERVICE_NAME: compute-operations
       SERVICE_ACCOUNT_MAIL: compute-operations-sa@smooth-command-462303-n7.iam.gserviceaccount.com
       VPC_CONNECTOR: cloudrun-connector
@@ -51,7 +49,7 @@ jobs:
       - name: Deploy to Cloud Run (low-cost, internal only)
         run: |
           gcloud run deploy $SERVICE_NAME \
-            --image=us-central1-docker.pkg.dev/$PROJECT_ID/$REPO_NAME/$IMAGE_NAME \
+            --image=us-central1-docker.pkg.dev/$PROJECT_ID/$REPOSITORY/$IMAGE_NAME \
             --region=$REGION \
             --platform=managed \
             --no-allow-unauthenticated \
