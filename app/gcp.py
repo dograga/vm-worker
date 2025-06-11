@@ -207,7 +207,7 @@ def store_vm_schedule_tag(tag: dataclass.ScheduleTag):
 
 def get_nodepool_doc_id(tag: dataclass.NodePoolSizeTag) -> str:
     # Compose unique doc id from identifiers
-    return f"{tag.project_id}_{tag.cluster_id}_{tag.nodepool_id}"
+    return f"{tag.project_id}-{tag.cluster_id}-{tag.nodepool_id}"
 
 def store_nodepool_size_tag(tag: dataclass.NodePoolSizeTag):
     # Initialize Firestore client
