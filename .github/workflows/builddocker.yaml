@@ -1,4 +1,4 @@
-name: Build and Push Docker Image to Google Artifact Registry
+name: Build and Push Docker Image & Redeploy to Cloud Run (Low-Cost, Internal Only)
 
 on:
   workflow_dispatch:
@@ -41,3 +41,20 @@ jobs:
       - name: Push image to Artifact Registry
         run: |
           docker push ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
+
+      - name: Deploy to Cloud Run (low-cost, internal only)
+        run: |
+          gcloud run deploy $SERVICE_NAME \
+            --image=us-central1-docker.pkg.dev/$PROJECT_ID/$REPO_NAME/$IMAGE_NAME \
+            --region=$REGION \
+            --platform=managed \
+            --no-allow-unauthenticated \
+            --vpc-connector=$VPC_CONNECTOR \
+            --service-account $SERVICE_ACCOUNT_MAIL \
+            --ingress=internal \
+            --memory=512Mi \
+            --cpu=0.1 \
+            --timeout=300s \
+            --max-instances=2 \
+            --min-instances=1 \
+            --quiet
