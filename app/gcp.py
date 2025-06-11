@@ -219,7 +219,7 @@ def store_vm_schedule_tag(tag: dataclass.ScheduleTag):
         }
 
         doc_ref.set(doc_data)
-        logger.info(f"Stored VM schedule tag under doc_id: {doc_id}")
+        logger.info(f"Stored VM schedule tag under doc_id: {doc_id} data: {doc_data}")
 
         return {
             "message": f"Schedule info stored for {tag.instance_name}",

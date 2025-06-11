@@ -13,6 +13,12 @@ jobs:
       REPOSITORY: test-repo
       IMAGE_NAME: compute-worker
       IMAGE_TAG: latest
+      REPO_NAME: test-repo
+      IMAGE_NAME: compute-worker
+      SERVICE_NAME: compute-operations
+      SERVICE_ACCOUNT_MAIL: compute-operations-sa@smooth-command-462303-n7.iam.gserviceaccount.com
+      VPC_CONNECTOR: cloudrun-connector
+
 
     steps:
       - name: Checkout code
