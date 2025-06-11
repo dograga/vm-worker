@@ -9,7 +9,7 @@ from google.cloud import container_v1
 from google.protobuf.timestamp_pb2 import Timestamp
 import datetime
 import os
-import json
+import pytz
 from app.utils.config_loader import load_config
 load_config()
 
@@ -213,7 +213,9 @@ def store_vm_schedule_tag(tag: dataclass.ScheduleTag):
                 "timezone": tag.timezone.lower()
             },
             "vm_name": tag.instance_name,
-            "zone": tag.zone
+            "zone": tag.zone,
+            "updated_on": datetime.now(pytz.timezone("Asia/Singapore")).isoformat(),
+            "updated_by": tag.updated_by or "system",  # Default to 'system' if not provided
         }
 
         doc_ref.set(doc_data)
