@@ -109,32 +109,6 @@ def nodepool_setsize(config: dataclass.NodePoolConfig):
         raise HTTPException(status_code=500, detail=f"Error updating node pool: {str(e)}")
 
 
-def get_doc_id(tag: dataclass.NodePoolSizeTag) -> str:
-    # Compose unique doc id from identifiers
-    return f"{tag.project_id}_{tag.cluster_id}_{tag.nodepool_id}"
-
-def store_nodepool_size_tag(tag: dataclass.NodePoolSizeTag):
-    # Initialize Firestore client
-    #db = firestore.Client()
-    # Collection name
-    collection_name = "gke-nodepool-scheduler"
-    logger.info(f"Storing nodepool size tag in collection: {collection_name}")
-    try:
-        doc_id = get_doc_id(tag)
-        doc_ref = firestore_db.collection(collection_name).document(doc_id)
-
-        # Convert pydantic model to dict
-        data = tag.model_dump()
-
-        # Store or update document
-        doc_ref.set(data)
-        logger.info(f"Stored nodepool info for doc_id: {doc_id}")
-    except Exception as e:
-        logger.error(f"Error storing nodepool size tag: {e}")
-        raise HTTPException(status_code=500, detail=f"Error storing nodepool size tag: {str(e)}")
-
-
-
 def make_timestamp(hour: int, minute: int) -> Timestamp:
     now = datetime.datetime.now(datetime.timezone.utc)
     dt = datetime.datetime(
@@ -230,3 +204,44 @@ def store_vm_schedule_tag(tag: dataclass.ScheduleTag):
     except Exception as e:
         logger.error(f"Error storing VM schedule tag: {e}")
         raise HTTPException(status_code=500, detail=f"Error storing VM schedule tag: {str(e)}")
+
+def get_nodepool_doc_id(tag: dataclass.NodePoolSizeTag) -> str:
+    # Compose unique doc id from identifiers
+    return f"{tag.project_id}_{tag.cluster_id}_{tag.nodepool_id}"
+
+def store_nodepool_size_tag(tag: dataclass.NodePoolSizeTag):
+    # Initialize Firestore client
+    collection_name = "gke-nodepool-scheduler"
+    logger.info(f"Storing nodepool size tag in collection: {collection_name}")
+    try:
+        doc_id = get_nodepool_doc_id(tag)
+        doc_ref = firestore_db.collection(collection_name).document(doc_id)
+
+        # Convert pydantic model to dict
+        doc_data = {
+            "business_hours": {
+                "days": tag.days,
+                "starttime": tag.starttime,
+                "endtime": tag.endtime,
+                "timezone": tag.timezone.lower()
+            },
+            "cluster_id": tag.cluster_id,
+            "nodepool_id": tag.nodepool_id,
+            "project_id": tag.project_id,
+            "zone": tag.zone,
+            "enable_autoscaling": tag.enable_autoscaling,
+            "business_hours_config": tag.business_hours_config,  # e.g., "3,6,4"
+            "off_hours_config": tag.off_hours_config,  # e.g., "0,0,0"
+            "updated_on": datetime.datetime.now(pytz.timezone("Asia/Singapore")).isoformat(),
+            "updated_by": tag.updated_by or "system",  # Default to 'system' if not provided
+        }
+        doc_ref.set(doc_data)
+        return {
+            "message": f"Schedule info stored for {tag.nodepool_id}",
+            "document_id": doc_id,
+            "collection": collection_name
+        }
+        logger.info(f"Stored nodepool info for doc_id: {doc_id}")
+    except Exception as e:
+        logger.error(f"Error storing nodepool size tag: {e}")
+        raise HTTPException(status_code=500, detail=f"Error storing nodepool size tag: {str(e)}")
