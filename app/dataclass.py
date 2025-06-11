@@ -29,6 +29,8 @@ class NodePoolSizeTag(BaseModel):
     business_hours_config: str = Field(..., example="3,6,4")  # min=3,max=6,desired=4
     off_hours_config: str = Field(..., example="0,0,0")       # min=0,max=0,desired=0
     business_hours: dict = Field(..., example={"days": [1,2,3,4], "starttime":"06:00:00", "endtime": "18:00:00", "timezone": "SGT"}) 
+    updated_on: Optional[str] = None  # ISO format date string, e.g., "2023-10-01T12:00:00Z"
+    updated_by: Optional[str] = None  # User who updated the tag, e.g., "
 
 
 class MaintenanceWindowRequest(BaseModel):
@@ -39,6 +41,8 @@ class MaintenanceWindowRequest(BaseModel):
     byday: List[str]  # e.g., ["MO", "TH"]
     start_time: str  # Format "HH:MM"
     duration_hours: int  # between 4 and 24 
+    updated_on: Optional[str] = None  # ISO format date string, e.g., "2023-10-01T12:00:00Z"
+    updated_by: Optional[str] = None  # User who updated the tag, e.g., "
 
 class ScheduleTag(BaseModel):
     days: List[int] = Field(..., example=[1, 2, 3, 4, 5])
@@ -48,3 +52,5 @@ class ScheduleTag(BaseModel):
     project_id: str
     zone: str
     instance_name: str
+    updated_on: Optional[str] = None  # ISO format date string, e.g., "2023-10-01T12:00:00Z"
+    updated_by: Optional[str] = None  # User who updated the tag, e.g., "
