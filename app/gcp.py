@@ -188,6 +188,7 @@ def store_vm_schedule_tag(tag: dataclass.ScheduleTag):
             },
             "vm_name": tag.instance_name,
             "zone": tag.zone,
+            "project_id": tag.project_id,
             "updated_on": datetime.datetime.now(pytz.timezone("Asia/Singapore")).isoformat(),
             "updated_by": tag.updated_by or "system",  # Default to 'system' if not provided
         }
