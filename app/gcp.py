@@ -167,7 +167,7 @@ def schedule_maintenance(req: dataclass.MaintenanceWindowRequest):
 
 def get_vm_doc_id(tag: dataclass.ScheduleTag) -> str:
     """Generate Firestore document ID for a VM instance."""
-    return f"vm-{tag.project_id}-{tag.instance_name}"
+    return f"{tag.project_id}-vmid-{tag.instance_name}"
 
 def store_vm_schedule_tag(tag: dataclass.ScheduleTag):
     """Store VM instance schedule in Firestore."""
@@ -207,7 +207,7 @@ def store_vm_schedule_tag(tag: dataclass.ScheduleTag):
 
 def get_nodepool_doc_id(tag: dataclass.NodePoolSizeTag) -> str:
     # Compose unique doc id from identifiers
-    return f"{tag.project_id}-{tag.cluster_id}-{tag.nodepool_id}"
+    return f"{tag.project_id}-clid-{tag.cluster_id}-nid-{tag.nodepool_id}"
 
 def store_nodepool_size_tag(tag: dataclass.NodePoolSizeTag):
     # Initialize Firestore client
