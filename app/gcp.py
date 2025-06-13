@@ -180,12 +180,7 @@ def store_vm_schedule_tag(tag: dataclass.ScheduleTag):
         doc_ref = firestore_db.collection(collection_name).document(doc_id)
 
         doc_data = {
-            "business_hours": {
-                "days": tag.days,
-                "starttime": tag.starttime,
-                "endtime": tag.endtime,
-                "timezone": tag.timezone.lower()
-            },
+            "business_hours": tag.business_hours,  # e.g., {"days": [1, 2, 3, 4, 5], "starttime": "06:00:00", "endtime": "20:00:00", "timezone": "SGT"}
             "vm_name": tag.instance_name,
             "zone": tag.zone,
             "project_id": tag.project_id,
