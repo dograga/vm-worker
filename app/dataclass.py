@@ -57,6 +57,6 @@ class ScheduleTag(BaseModel):
 
 class NodePoolTag(BaseModel):
     project_id: str
-    zone: str
+    location: str
     cluster_id: str
     nodepool_id: str
