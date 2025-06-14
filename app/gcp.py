@@ -242,7 +242,7 @@ def store_nodepool_size_tag(tag: dataclass.NodePoolSizeTag):
         logger.error(f"Error storing nodepool size tag: {e}")
         raise HTTPException(status_code=500, detail=f"Error storing nodepool size tag: {str(e)}")
 
-def delete_nodepool_tag(tag: dataclass.NodePoolSizeTag):
+def delete_nodepool_tag(tag: dataclass.NodePoolTag):
     """Delete a node pool size tag from Firestore."""
     collection_name = "gke-nodepool-scheduler"
     logger.info(f"Deleting nodepool size tag in collection: {collection_name}")
