@@ -166,7 +166,7 @@ async def nodepool_delete_tag(request: Request):
         payload_data = base64.b64decode(envelope["message"]["data"]).decode("utf-8")
         logger.info(f"Received message ID: {message_id}, Data: {payload_data}")
         payload_dict = json.loads(payload_data)
-        payload = dataclass.NodePoolSizeTag(**payload_dict)
+        payload = dataclass.NodePoolTag(**payload_dict)
         response = gcp.delete_nodepool_tag(payload)
         return response
     except Exception as e:
