@@ -65,4 +65,3 @@ class VMScheduleDelete(BaseModel):
     project_id: str
     zone: str
     instance_name: str
-    nodepool_id: str
