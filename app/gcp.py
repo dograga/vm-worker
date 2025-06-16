@@ -259,7 +259,6 @@ def delete_nodepool_tag(tag: dataclass.NodePoolDelete):
     
 def delete_vm_schedule(tag: dataclass.VMScheduleDelete):
     """Delete a node pool size tag from Firestore."""
-    vm_schedule_collection_name = "vm-instance-schedule"
     logger.info(f"Deleting nodepool size tag in collection: {vm_schedule_collection_name}")
     try:
         doc_id = get_vm_doc_id(tag.project_id, tag.instance_name)
