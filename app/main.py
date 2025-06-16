@@ -166,8 +166,28 @@ async def nodepool_delete_tag(request: Request):
         payload_data = base64.b64decode(envelope["message"]["data"]).decode("utf-8")
         logger.info(f"Received message ID: {message_id}, Data: {payload_data}")
         payload_dict = json.loads(payload_data)
-        payload = dataclass.NodePoolTag(**payload_dict)
+        payload = dataclass.NodePoolDelete(**payload_dict)
         response = gcp.delete_nodepool_tag(payload)
+        return response
+    except Exception as e:
+        logger.error(f"Error configuring node pool: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+    
+@app.post("/vm-schedule-delete")
+async def vm_schedule_delete(request: Request):
+    try:
+        envelope = await request.json()
+        if "message" not in envelope or "data" not in envelope["message"]:
+            raise HTTPException(status_code=400, detail="Invalid Pub/Sub message format")
+
+        # Decode and parse the base64-encoded message
+        message = envelope.get("message", {})
+        message_id = message.get("messageId")
+        payload_data = base64.b64decode(envelope["message"]["data"]).decode("utf-8")
+        logger.info(f"Received message ID: {message_id}, Data: {payload_data}")
+        payload_dict = json.loads(payload_data)
+        payload = dataclass.VMScheduleDelete(**payload_dict)
+        response = gcp.delete_vm_schedule(payload)
         return response
     except Exception as e:
         logger.error(f"Error configuring node pool: {e}")

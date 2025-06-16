@@ -165,9 +165,9 @@ def schedule_maintenance(req: dataclass.MaintenanceWindowRequest):
         logger.error(f"Error scheduling maintenance: {e}")
         raise HTTPException(status_code=500, detail=f"Error scheduling maintenance: {str(e)}")
 
-def get_vm_doc_id(tag: dataclass.ScheduleTag) -> str:
+def get_vm_doc_id(project_id, instance_name) -> str:
     """Generate Firestore document ID for a VM instance."""
-    return f"{tag.project_id}-vmid-{tag.instance_name}"
+    return f"{project_id}-vmid-{instance_name}"
 
 def store_vm_schedule_tag(tag: dataclass.ScheduleTag):
     """Store VM instance schedule in Firestore."""
@@ -176,7 +176,7 @@ def store_vm_schedule_tag(tag: dataclass.ScheduleTag):
     logger.info(f"Storing VM schedule tag in collection: {collection_name}")
 
     try:
-        doc_id = get_vm_doc_id(tag)
+        doc_id = get_vm_doc_id(tag.project_id, tag.instance_name)
         doc_ref = firestore_db.collection(collection_name).document(doc_id)
 
         doc_data = {
@@ -242,7 +242,7 @@ def store_nodepool_size_tag(tag: dataclass.NodePoolSizeTag):
         logger.error(f"Error storing nodepool size tag: {e}")
         raise HTTPException(status_code=500, detail=f"Error storing nodepool size tag: {str(e)}")
 
-def delete_nodepool_tag(tag: dataclass.NodePoolTag):
+def delete_nodepool_tag(tag: dataclass.NodePoolDelete):
     """Delete a node pool size tag from Firestore."""
     collection_name = "gke-nodepool-scheduler"
     logger.info(f"Deleting nodepool size tag in collection: {collection_name}")
@@ -252,6 +252,20 @@ def delete_nodepool_tag(tag: dataclass.NodePoolTag):
         doc_ref.delete()
         logger.info(f"Deleted nodepool size tag with doc_id: {doc_id}")
         return {"message": f"Node pool size tag deleted for {tag.nodepool_id}", "document_id": doc_id}
+    except Exception as e:
+        logger.error(f"Error deleting nodepool size tag: {e}")
+        raise HTTPException(status_code=500, detail=f"Error deleting nodepool size tag: {str(e)}")
+    
+def delete_vm_schedule(tag: dataclass.VMScheduleDelete):
+    """Delete a node pool size tag from Firestore."""
+    collection_name = "gke-nodepool-scheduler"
+    logger.info(f"Deleting nodepool size tag in collection: {collection_name}")
+    try:
+        doc_id = get_vm_doc_id(tag.project_id, tag.instance_name)
+        doc_ref = firestore_db.collection(collection_name).document(doc_id)
+        doc_ref.delete()
+        logger.info(f"Deleted VM schedule with doc_id: {doc_id}")
+        return {"message": f"VM Schedule deleted for {tag.instance_name}", "document_id": doc_id}
     except Exception as e:
         logger.error(f"Error deleting nodepool size tag: {e}")
         raise HTTPException(status_code=500, detail=f"Error deleting nodepool size tag: {str(e)}")

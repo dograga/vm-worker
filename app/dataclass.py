@@ -55,8 +55,14 @@ class ScheduleTag(BaseModel):
     updated_on: Optional[str] = None  # ISO format date string, e.g., "2023-10-01T12:00:00Z"
     updated_by: Optional[str] = None  # User who updated the tag, e.g., "
 
-class NodePoolTag(BaseModel):
+class NodePoolDelete(BaseModel):
     project_id: str
     location: str
     cluster_id: str
+    nodepool_id: str
+
+class VMScheduleDelete(BaseModel):
+    project_id: str
+    zone: str
+    instance_name: str
     nodepool_id: str
