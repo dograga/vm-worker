@@ -18,6 +18,7 @@ logger = structlog.get_logger()
 credentials, _ = default()
 compute_client = compute_v1.InstancesClient()
 firestore_db = firestore.Client(database=os.getenv("FIRESTORE_DB"), project=os.getenv("PROJECT_ID"))
+vm_schedule_collection_name = "vm-instance-schedule"
 
 def perform_vm_operation(project_id: str, zone: str, instance_name: str, action: str):
     if action == "start":
@@ -172,12 +173,12 @@ def get_vm_doc_id(project_id, instance_name) -> str:
 def store_vm_schedule_tag(tag: dataclass.ScheduleTag):
     """Store VM instance schedule in Firestore."""
     #db = firestore.Client()
-    collection_name = "vm-instance-schedule"
-    logger.info(f"Storing VM schedule tag in collection: {collection_name}")
+    #collection_name = "vm-instance-schedule" 
+    logger.info(f"Storing VM schedule tag in collection: {vm_schedule_collection_name}")
 
     try:
         doc_id = get_vm_doc_id(tag.project_id, tag.instance_name)
-        doc_ref = firestore_db.collection(collection_name).document(doc_id)
+        doc_ref = firestore_db.collection(vm_schedule_collection_name).document(doc_id)
 
         doc_data = {
             "business_hours": {
@@ -199,7 +200,7 @@ def store_vm_schedule_tag(tag: dataclass.ScheduleTag):
         return {
             "message": f"Schedule info stored for {tag.instance_name}",
             "document_id": doc_id,
-            "collection": collection_name
+            "collection": vm_schedule_collection_name
         }
 
     except Exception as e:
@@ -258,11 +259,11 @@ def delete_nodepool_tag(tag: dataclass.NodePoolDelete):
     
 def delete_vm_schedule(tag: dataclass.VMScheduleDelete):
     """Delete a node pool size tag from Firestore."""
-    collection_name = "gke-nodepool-scheduler"
-    logger.info(f"Deleting nodepool size tag in collection: {collection_name}")
+    vm_schedule_collection_name = "vm-instance-schedule"
+    logger.info(f"Deleting nodepool size tag in collection: {vm_schedule_collection_name}")
     try:
         doc_id = get_vm_doc_id(tag.project_id, tag.instance_name)
-        doc_ref = firestore_db.collection(collection_name).document(doc_id)
+        doc_ref = firestore_db.collection(vm_schedule_collection_name).document(doc_id)
         doc_ref.delete()
         logger.info(f"Deleted VM schedule with doc_id: {doc_id}")
         return {"message": f"VM Schedule deleted for {tag.instance_name}", "document_id": doc_id}
