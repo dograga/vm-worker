@@ -289,6 +289,8 @@ def task_store_db(payload: dataclass.TaskPayload):
         for approver in payload.approvers:
             approval_doc = {
                 "TaskID": payload.task_id,
+                "TaskName": payload.task_name,
+                "Parameters": payload.parameters,
                 "ApproverName": approver.name,
                 "ApproverEmail": approver.email,
                 "Status": "Pending"
