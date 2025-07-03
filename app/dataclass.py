@@ -74,3 +74,8 @@ class TaskPayload(BaseModel):
     task_name: str
     parameters: Dict[str, Any]
     approvers: List[Approver]
+
+class TaskApprovals(BaseModel):
+    task_id: str
+    approver_email: str
+    action: Literal["approved", "rejected"]

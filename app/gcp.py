@@ -301,3 +301,25 @@ def task_store_db(payload: dataclass.TaskPayload):
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error storing task: {str(e)}")
+    
+def task_approve(payload: dataclass.TaskApprovals):
+    """Store task payload in Firestore."""
+    if payload.action not in {"approved", "rejected"}:
+            raise HTTPException(status_code=400, detail="Invalid action")
+    status = "Approved" if payload.action == "approve" else "Rejected"
+    collection_name= "taskApproval"
+    try:
+        approvals_ref = firestore_db.collection(collection_name)
+        query = approvals_ref.where("TaskID", "==", payload.task_id).where("ApproverEmail", "==", payload.approver_email)
+        docs = query.stream()
+        matched = False
+        for doc in docs:
+            matched = True
+            logger.info(f"Updating doc {doc.id} with status: {status}")
+            doc.reference.update({"Status": status})
+        if not matched:
+            raise HTTPException(status_code=404, detail="No matching task approval found")
+        return {"message": f"Task approval updated to {status} for task {payload.task_id} by {payload.approver_email}"}
+    except Exception as e:
+        logger.error(f"Error updating task approval: {e}")
+        raise HTTPException(status_code=500, detail=f"Error updating task approval: {str(e)}")
