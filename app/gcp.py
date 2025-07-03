@@ -323,7 +323,7 @@ def task_approve(payload: dataclass.TaskApprovals):
         if payload.action == "approved":
             all_docs = approvals_ref.where("TaskID", "==", payload.task_id).stream()
             statuses = [doc.to_dict().get("Status", "").lower() for doc in all_docs]
-
+            logger.info(f"Statuses for task {payload.task_id}: {statuses}")
             if statuses and all(s == "Approved" for s in statuses):
                 # Step 3: Update the tasks collection with Status = "Approved"
                 task_doc_ref = firestore_db.collection(task_col).document(payload.task_id)
