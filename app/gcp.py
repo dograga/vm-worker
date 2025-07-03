@@ -269,3 +269,33 @@ def delete_vm_schedule(tag: dataclass.VMScheduleDelete):
     except Exception as e:
         logger.error(f"Error deleting nodepool size tag: {e}")
         raise HTTPException(status_code=500, detail=f"Error deleting nodepool size tag: {str(e)}")
+    
+def task_store_db(payload: dataclass.TaskPayload):
+    """Store task payload in Firestore."""
+    task_collection_name = "tasks"
+    apporval_collection_name = "taskApproval"
+    logger.info(f"Storing task data in collection: {task_collection_name}")
+    try:
+        # 1. Write to "Tasks" collection
+        task_doc = {
+            "TaskID": payload.task_id,
+            "TaskName": payload.task_name,
+            "Parameters": payload.parameters,
+            "Status": "Pending Approval"
+        }
+        firestore_db.collection(task_collection_name).document(payload.task_id).set(task_doc)
+        # 2. Write to "TaskApproval" collection (one per approver)
+        logger.info(f"Storing task approval data in collection: {apporval_collection_name}")
+        for approver in payload.approvers:
+            approval_doc = {
+                "TaskID": payload.task_id,
+                "ApproverName": approver.name,
+                "ApproverEmail": approver.email,
+                "Status": "Pending"
+            }
+            firestore_db.collection(apporval_collection_name).add(approval_doc)
+
+        return {"message": "Task and approvals stored successfully."}
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error storing task: {str(e)}")

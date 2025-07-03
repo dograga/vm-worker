@@ -1,7 +1,6 @@
 from pydantic import BaseModel, Field, field_validator
 from typing_extensions import Annotated
-from typing import Literal, List, Optional
-import re
+from typing import Literal, List, Optional, Dict, Any
 
 class VMOperationPayload(BaseModel):
     vm_name: str = Field(..., example="test-vm")
@@ -65,3 +64,13 @@ class VMScheduleDelete(BaseModel):
     project_id: str
     zone: str
     instance_name: str
+
+class Approver(BaseModel):
+    name: str
+    email: str
+
+class TaskPayload(BaseModel):
+    task_id: str
+    task_name: str
+    parameters: Dict[str, Any]
+    approvers: List[Approver]
