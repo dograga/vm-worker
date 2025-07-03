@@ -308,6 +308,7 @@ def task_approve(payload: dataclass.TaskApprovals):
             raise HTTPException(status_code=400, detail="Invalid action")
     status = "Approved" if payload.action == "approved" else "Rejected"
     collection_name= "taskApproval"
+    task_col = "tasks"
     try:
         approvals_ref = firestore_db.collection(collection_name)
         query = approvals_ref.where("TaskID", "==", payload.task_id).where("ApproverEmail", "==", payload.approver_email)
@@ -319,7 +320,17 @@ def task_approve(payload: dataclass.TaskApprovals):
             doc.reference.update({"Status": status})
         if not matched:
             raise HTTPException(status_code=404, detail="No matching task approval found")
+        if payload.action == "approved":
+            all_docs = approvals_ref.where("TaskID", "==", payload.task_id).stream()
+            statuses = [doc.to_dict().get("Status", "").lower() for doc in all_docs]
+
+            if statuses and all(s == "Approved" for s in statuses):
+                # Step 3: Update the tasks collection with Status = "Approved"
+                task_doc_ref = firestore_db.collection(task_col).document(payload.task_id)
+                task_doc_ref.update({"Status": "Approved"})
+                logger.info(f"All approvals done. Task {payload.task_id} marked as Approved in tasks collection")
         return {"message": f"Task approval updated to {status} for task {payload.task_id} by {payload.approver_email}"}
+    
     except Exception as e:
         logger.error(f"Error updating task approval: {e}")
         raise HTTPException(status_code=500, detail=f"Error updating task approval: {str(e)}")
