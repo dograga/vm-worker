@@ -306,7 +306,7 @@ def task_approve(payload: dataclass.TaskApprovals):
     """Store task payload in Firestore."""
     if payload.action not in {"approved", "rejected"}:
             raise HTTPException(status_code=400, detail="Invalid action")
-    status = "Approved" if payload.action == "approve" else "Rejected"
+    status = "Approved" if payload.action == "approved" else "Rejected"
     collection_name= "taskApproval"
     try:
         approvals_ref = firestore_db.collection(collection_name)
